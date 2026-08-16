@@ -13,7 +13,7 @@ from .installer import InstallError, download_voice, verify_installed_voice
 from .logging import configure_logging, log_path
 from .models import Project, ProjectError, Speaker, ScriptLine
 from .parser import ScriptParseError, assign_unlabeled, parse_text
-from .project_io import ProjectFileError, load_project, save_project
+from .project_io import ProjectFileError, load_document, load_project, save_project
 from .render import RenderError, render_project
 from .tts import TTSProviderError, engine_capabilities, provider_for_engine
 from .voices import default_voice_directory, discover_voices
@@ -82,6 +82,25 @@ def _import_text(args) -> int:
         return 2
     print(args.output)
     logger.info("imported text script %s", args.input)
+    return 0
+
+
+def _set_timeline(args) -> int:
+    logger = configure_logging()
+    try:
+        path = Path(args.project)
+        document = load_document(path)
+        timeline = load_document(Path(args.timeline))
+        if not isinstance(timeline, dict):
+            raise ProjectError("timeline must be a mapping with optional music and effects lanes")
+        document["timeline"] = timeline
+        project = Project.from_dict(document, source_path=str(path))
+        save_project(project, path)
+    except (OSError, ProjectFileError, ProjectError) as exc:
+        logger.exception("set-timeline failed")
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    print(path)
     return 0
 
 
@@ -262,6 +281,10 @@ def build_parser() -> argparse.ArgumentParser:
     imp.add_argument("--author")
     imp.add_argument("--mode", choices=["narrator", "alternate"])
     imp.set_defaults(func=_import_text)
+    settl = sub.add_parser("set-timeline", help="add or replace music/effects production cues on a project")
+    settl.add_argument("--project", required=True, type=Path)
+    settl.add_argument("--timeline", required=True, type=Path, help="YAML/JSON file with optional music and effects lanes")
+    settl.set_defaults(func=_set_timeline)
     voices = sub.add_parser("voices", help="inspect and install Piper voices")
     voices_sub = voices.add_subparsers(dest="voices_command", required=True)
     listing = voices_sub.add_parser("list")
