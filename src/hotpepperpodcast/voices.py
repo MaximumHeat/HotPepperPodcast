@@ -16,6 +16,7 @@ class Voice:
     dataset: str | None = None
     sample_rate: int | None = None
     num_speakers: int | None = None
+    speaker_id_map: dict[str, int] | None = None
     license: str | None = None
     license_url: str | None = None
 
@@ -42,6 +43,9 @@ def discover_voices(directory: str | Path) -> list[Voice]:
         language = metadata.get("language", {}).get("code") or metadata.get("language", {}).get("name")
         dataset = metadata.get("dataset")
         return_metadata = metadata.get("license")
+        speaker_id_map = metadata.get("speaker_id_map")
+        if not isinstance(speaker_id_map, dict):
+            speaker_id_map = None
         result.append(
             Voice(
                 id=voice_id,
@@ -50,6 +54,7 @@ def discover_voices(directory: str | Path) -> list[Voice]:
                 dataset=dataset,
                 sample_rate=audio.get("sample_rate"),
                 num_speakers=metadata.get("num_speakers"),
+                speaker_id_map=speaker_id_map,
                 license=return_metadata if isinstance(return_metadata, str) else None,
                 license_url=metadata.get("license_url"),
             )
@@ -59,3 +64,11 @@ def discover_voices(directory: str | Path) -> list[Voice]:
 
 def find_voice(directory: str | Path, voice_id: str) -> Voice | None:
     return next((voice for voice in discover_voices(directory) if voice.id == voice_id), None)
+
+
+def list_speaker_ids(directory: str | Path, voice_id: str) -> list[str]:
+    """Return the sorted speaker ids declared by a multi-speaker voice model."""
+    voice = find_voice(directory, voice_id)
+    if voice is None or not voice.speaker_id_map:
+        return []
+    return sorted(voice.speaker_id_map.keys())

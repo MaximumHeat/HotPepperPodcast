@@ -22,7 +22,7 @@ class TTSProviderError(RuntimeError):
 
 
 class TTSProvider(Protocol):
-    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0) -> None: ...
+    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0, speaker_id: str | None = None) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -52,7 +52,7 @@ class DirectPiperProvider:
         self.voice_directory = Path(voice_directory).expanduser()
         self.timeout = timeout
 
-    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0) -> None:
+    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0, speaker_id: str | None = None) -> None:
         model = find_voice(self.voice_directory, voice)
         if model is None:
             raise TTSProviderError(f"voice {voice!r} was not found in {self.voice_directory}")
@@ -66,6 +66,8 @@ class DirectPiperProvider:
             "--output_file", str(output_path),
             "--length_scale", f"{length_scale:.5f}",
         ]
+        if speaker_id:
+            command += ["--speaker", str(_speaker_index(model, voice, speaker_id))]
         try:
             completed = subprocess.run(
                 command,
@@ -103,9 +105,12 @@ class HttpPiperProvider:
         self.timeout = timeout
         self._opener = opener or urllib.request.urlopen
 
-    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0) -> None:
+    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0, speaker_id: str | None = None) -> None:
         if not text.strip():
             raise TTSProviderError("cannot synthesize empty text")
+        # Multi-speaker selection is handled by the direct Piper provider; the
+        # OpenAI-compatible HTTP endpoint does not expose per-utterance speaker
+        # selection here, so ``speaker_id`` is intentionally unused.
         payload = json.dumps({"input": text, "voice": voice, "model": voice, "speed": speed}).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base_url}/v1/audio/speech",
@@ -137,7 +142,7 @@ class EspeakNgProvider:
         self.binary = str(binary) if binary else _find_espeak_binary()
         self.timeout = timeout
 
-    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0) -> None:
+    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0, speaker_id: str | None = None) -> None:
         if not text.strip():
             raise TTSProviderError("cannot synthesize empty text")
         if not self.binary:
@@ -186,7 +191,9 @@ class XTTSProvider:
                 raise TTSProviderError(f"XTTS could not load model {self.model_name!r}: {exc}") from exc
         return self._tts
 
-    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0) -> None:
+    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0, speaker_id: str | None = None) -> None:
+        # XTTS selects its speaker via ``speaker_wav``/``voice``; a Piper
+        # ``speaker_id`` is not an XTTS speaker name, so it is ignored here.
         if not text.strip():
             raise TTSProviderError("cannot synthesize empty text")
         if self.speaker_wav is not None and not self.speaker_wav.is_file():
@@ -220,6 +227,20 @@ class XTTSProvider:
         except Exception as exc:
             raise TTSProviderError(f"XTTS synthesis failed: {exc}") from exc
         _require_wav(output_path, "XTTS")
+
+
+def _speaker_index(model, voice: str, speaker_id: str) -> int:
+    """Resolve a Piper speaker reference to its numeric ``--speaker`` index."""
+    if model.num_speakers is not None and model.num_speakers <= 1:
+        raise TTSProviderError(f"voice {voice!r} is single-speaker; speaker {speaker_id!r} is not available")
+    if model.speaker_id_map is not None:
+        if speaker_id in model.speaker_id_map:
+            return model.speaker_id_map[speaker_id]
+        raise TTSProviderError(f"speaker {speaker_id!r} is not available in voice {voice!r}")
+    try:
+        return int(speaker_id)
+    except ValueError as exc:
+        raise TTSProviderError(f"speaker {speaker_id!r} must be a numeric index for voice {voice!r}") from exc
 
 
 def _find_espeak_binary() -> str | None:

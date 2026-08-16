@@ -16,7 +16,7 @@ from .parser import ScriptParseError, assign_unlabeled, parse_text
 from .project_io import ProjectFileError, load_document, load_project, save_project
 from .render import RenderError, render_project
 from .tts import TTSProviderError, engine_capabilities, provider_for_engine
-from .voices import default_voice_directory, discover_voices
+from .voices import default_voice_directory, discover_voices, list_speaker_ids
 
 DEFAULT_BINARY = Path.home() / "AI" / "piper" / "piper_bin"
 DEFAULT_VOICES = ("en_US-lessac-medium", "en_US-amy-medium", "en_GB-aru-medium")
@@ -104,6 +104,40 @@ def _set_timeline(args) -> int:
     return 0
 
 
+def _set_speaker(args) -> int:
+    from dataclasses import replace
+
+    logger = configure_logging()
+    try:
+        path = Path(args.project)
+        project = load_project(path)
+        target = args.speaker.strip()
+        speaker = next((s for s in project.speakers if s.id == target), None)
+        if speaker is None:
+            name_matches = [s for s in project.speakers if s.name.casefold() == target.casefold()]
+            if len(name_matches) == 1:
+                speaker = name_matches[0]
+            elif len(name_matches) > 1:
+                raise ProjectError(f"speaker name {target!r} is ambiguous; use the speaker id")
+            else:
+                raise ProjectError(f"speaker {target!r} was not found in {path}")
+        if args.voice is None and args.piper_speaker is None:
+            raise ProjectError("set-speaker needs --voice and/or --piper-speaker")
+        updated = replace(
+            speaker,
+            voice=args.voice if args.voice is not None else speaker.voice,
+            piper_speaker=args.piper_speaker if args.piper_speaker is not None else speaker.piper_speaker,
+        )
+        project = replace(project, speakers=tuple(updated if s is speaker else s for s in project.speakers))
+        save_project(project, path)
+    except (OSError, ProjectFileError, ProjectError) as exc:
+        logger.exception("set-speaker failed")
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    print(path)
+    return 0
+
+
 def _list_voices(args) -> int:
     configure_logging()
     directory = Path(args.directory).expanduser()
@@ -119,6 +153,19 @@ def _list_voices(args) -> int:
         if voice.sample_rate: details.append(f"{voice.sample_rate}Hz")
         if voice.num_speakers: details.append(f"speakers={voice.num_speakers}")
         print("  " + " | ".join(details))
+    return 0
+
+
+def _list_speakers(args) -> int:
+    configure_logging()
+    directory = Path(args.directory).expanduser()
+    speaker_ids = list_speaker_ids(directory, args.voice)
+    if not speaker_ids:
+        print(f"No speaker ids found for {args.voice!r} in {directory} (missing model or single-speaker)")
+        return 1
+    print(f"{args.voice}: {len(speaker_ids)} speakers")
+    for speaker_id in speaker_ids:
+        print(f"  {speaker_id}")
     return 0
 
 
@@ -285,6 +332,12 @@ def build_parser() -> argparse.ArgumentParser:
     settl.add_argument("--project", required=True, type=Path)
     settl.add_argument("--timeline", required=True, type=Path, help="YAML/JSON file with optional music and effects lanes")
     settl.set_defaults(func=_set_timeline)
+    setspk = sub.add_parser("set-speaker", help="assign a voice and/or Piper speaker id to a project speaker")
+    setspk.add_argument("--project", required=True, type=Path)
+    setspk.add_argument("--speaker", required=True, help="speaker id or name")
+    setspk.add_argument("--voice", default=None, help="voice model id, e.g. en_US-libritts-high")
+    setspk.add_argument("--piper-speaker", default=None, dest="piper_speaker", help="Piper speaker id for multi-speaker models")
+    setspk.set_defaults(func=_set_speaker)
     voices = sub.add_parser("voices", help="inspect and install Piper voices")
     voices_sub = voices.add_subparsers(dest="voices_command", required=True)
     listing = voices_sub.add_parser("list")
@@ -309,6 +362,10 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--destination", default=str(default_voice_directory()))
     verify.add_argument("--no-cache", action="store_true", help="refresh the official catalog before verifying")
     verify.set_defaults(func=_verify_voice)
+    speakers = voices_sub.add_parser("speakers", help="list speaker ids for a multi-speaker voice")
+    speakers.add_argument("--voice", required=True, help="installed voice id, e.g. en_US-libritts-high")
+    speakers.add_argument("--directory", default=str(default_voice_directory()))
+    speakers.set_defaults(func=_list_speakers)
     engines = sub.add_parser("engines", help="show available and optional TTS engines")
     engines.add_argument("--voice-dir", default=str(default_voice_directory()))
     engines.add_argument("--piper-binary", default=str(DEFAULT_BINARY if DEFAULT_BINARY.exists() else "piper"))

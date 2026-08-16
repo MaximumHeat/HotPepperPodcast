@@ -276,6 +276,7 @@ class Speaker:
     name: str
     backend: str = "piper-direct"
     voice: str = "en_US-lessac-medium"
+    piper_speaker: str = ""
     speed: float = 1.0
     pause_after_ms: int = 350
     pronunciation: dict[str, str] = field(default_factory=dict)
@@ -304,6 +305,7 @@ class Speaker:
             name=name,
             backend=str(raw.get("backend", "piper-direct")),
             voice=str(raw.get("voice", "en_US-lessac-medium")),
+            piper_speaker=str(raw.get("piper_speaker", "") or "").strip(),
             speed=speed,
             pause_after_ms=pause,
             pronunciation={str(k): str(v) for k, v in pronunciation.items()},
@@ -467,6 +469,7 @@ class Project:
                     "name": s.name,
                     "backend": s.backend,
                     "voice": s.voice,
+                    **({"piper_speaker": s.piper_speaker} if s.piper_speaker else {}),
                     "speed": s.speed,
                     "pause_after_ms": s.pause_after_ms,
                     **({"pronunciation": s.pronunciation} if s.pronunciation else {}),

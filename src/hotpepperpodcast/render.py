@@ -438,7 +438,7 @@ def render_project(
                 provider = provider_for(speaker.backend)
                 provider_engine = getattr(provider, "engine_id", speaker.backend)
                 effective_engines[speaker.id] = provider_engine
-                provider.synthesize(spoken, speaker.voice, segment_path, speaker.speed)
+                provider.synthesize(spoken, speaker.voice, segment_path, speaker.speed, speaker.piper_speaker or None)
             except TTSProviderError:
                 raise
             except Exception as exc:
@@ -453,6 +453,7 @@ def render_project(
                 "index": index + 1,
                 "speaker": speaker.id,
                 "voice": speaker.voice,
+                **({"piper_speaker": speaker.piper_speaker} if speaker.piper_speaker else {}),
                 "backend": provider_engine,
                 "text_sha256": hashlib.sha256(line.text.encode("utf-8")).hexdigest(),
                 "duration_source": str(segment_path.name),
