@@ -1,0 +1,10 @@
+{
+  "manifest_version": 1,
+  "asset": "cover.png",
+  "format": "PNG RGB square artwork",
+  "dimensions": "1400x1400",
+  "sha256": "cc29721b86128b2c9844a72146464bf9d1355d4f5a7bfb83b6527ea9a065d156",
+  "license": "CC0-1.0-or-public-domain-dedication",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "source": "original deterministic generated artwork by HotPepperPodcast"
+}

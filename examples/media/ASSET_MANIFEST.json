@@ -1,0 +1,66 @@
+{
+  "manifest_version": 1,
+  "library": "HotPepperPodcast starter media",
+  "generated_by": "scripts/generate_starter_media.py",
+  "generated_assets_only": true,
+  "license": "CC0-1.0-or-public-domain-dedication",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "notes": "Original synthetic tones; no external recordings, samples, or network downloads.",
+  "assets": [
+    {
+      "file": "intro.wav",
+      "format": "WAV PCM signed 16-bit mono",
+      "sample_rate": 22050,
+      "frames": 18742,
+      "duration_seconds": 0.85,
+      "sha256": "8d5074d0d7453204b3eeff7bb13970f86465739fc6af98fbdc7c43fd98e9462c",
+      "license": "CC0-1.0-or-public-domain-dedication",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "original deterministic synthesis by HotPepperPodcast"
+    },
+    {
+      "file": "outro.wav",
+      "format": "WAV PCM signed 16-bit mono",
+      "sample_rate": 22050,
+      "frames": 22270,
+      "duration_seconds": 1.01,
+      "sha256": "75904cb58a5ed501885b2e6f01d2def9847393ff4a6a499ab735358942b197c4",
+      "license": "CC0-1.0-or-public-domain-dedication",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "original deterministic synthesis by HotPepperPodcast"
+    },
+    {
+      "file": "transition-sting.wav",
+      "format": "WAV PCM signed 16-bit mono",
+      "sample_rate": 22050,
+      "frames": 12348,
+      "duration_seconds": 0.56,
+      "sha256": "94c39d464580d9beb7a49a4f7f166df41ad9b735b93631d8b83fd5e76a5f90be",
+      "license": "CC0-1.0-or-public-domain-dedication",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "original deterministic synthesis by HotPepperPodcast"
+    },
+    {
+      "file": "clean-cue.wav",
+      "format": "WAV PCM signed 16-bit mono",
+      "sample_rate": 22050,
+      "frames": 5843,
+      "duration_seconds": 0.265,
+      "sha256": "c47b1befd76fe826f57667cb10b0f21038bf5e70fa45c15a0ffc3dbd10a04813",
+      "license": "CC0-1.0-or-public-domain-dedication",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "original deterministic synthesis by HotPepperPodcast"
+    },
+    {
+      "file": "subtle-bed.wav",
+      "format": "WAV PCM signed 16-bit mono",
+      "sample_rate": 22050,
+      "frames": 88200,
+      "duration_seconds": 4.0,
+      "sha256": "dfa143342c8e2b40fb582363d86e6bfa66a3b8366e7f66d9cc58095e485891ef",
+      "license": "CC0-1.0-or-public-domain-dedication",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "original deterministic synthesis by HotPepperPodcast"
+    }
+  ]
+}

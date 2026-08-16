@@ -1,0 +1,67 @@
+schema_version: 1
+project:
+  title: Hello HotPepperPodcast
+  author: MaximumHeat
+  description: A tiny two-speaker speech example with the bundled local starter media library.
+  output_formats: [wav, mp3]
+  export_stems: true
+  loudness_check: true
+  artwork: cover.png
+  package_export: true
+  publish_metadata:
+    subtitle: A small local rendering example
+    series: HotPepperPodcast Examples
+    episode_type: full
+    language: en
+    keywords: [local, podcast, piper]
+    website: https://github.com/MaximumHeat/HotPepperPodcast
+speakers:
+  - id: host
+    name: Host
+    backend: piper-direct
+    voice: en_US-lessac-medium
+    pause_after_ms: 350
+  - id: guest
+    name: Guest
+    backend: piper-direct
+    voice: en_US-amy-medium
+    pause_after_ms: 450
+script:
+  - speaker: host
+    text: Welcome to HotPepperPodcast.
+  - speaker: guest
+    text: This episode is rendered from a script you wrote.
+  - speaker: host
+    text: The bundled local starter library gives this episode a gentle production bed and simple transition cues.
+timeline:
+  music:
+    - file: subtle-bed.wav
+      start_line: 1
+      offset_ms: 0
+      volume: 0.12
+      loop: true
+      fade_in_ms: 1200
+      fade_out_ms: 1200
+      duck_speech: true
+      duck_amount: 0.65
+      duck_attack_ms: 80
+      duck_release_ms: 220
+  effects:
+    - file: intro.wav
+      start_line: 1
+      offset_ms: 0
+      volume: 0.45
+      fade_in_ms: 120
+      fade_out_ms: 220
+    - file: transition-sting.wav
+      start_line: 2
+      offset_ms: 0
+      volume: 0.35
+      fade_in_ms: 60
+      fade_out_ms: 160
+    - file: outro.wav
+      start_line: 3
+      offset_ms: 0
+      volume: 0.45
+      fade_in_ms: 120
+      fade_out_ms: 220

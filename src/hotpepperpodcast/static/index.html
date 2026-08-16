@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HotPepperPodcast</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a0e1a;
+      --bg-soft: #0f1626;
+      --surface: #141c30;
+      --surface-2: #1a2338;
+      --line: #243049;
+      --line-soft: #1d2740;
+      --text: #eef2fb;
+      --text-soft: #b7c2d9;
+      --text-dim: #8b97ad;
+      --accent: #7c5cff;
+      --accent-2: #9d7bff;
+      --accent-soft: rgba(124, 92, 255, .16);
+      --hot: #ff8a3d;
+      --hot-soft: rgba(255, 138, 61, .14);
+      --ok: #34d399;
+      --ok-soft: rgba(52, 211, 153, .12);
+      --danger: #fb5d7a;
+      --danger-soft: rgba(251, 93, 122, .14);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 34px rgba(3,6,18,.5);
+      --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 15% -10%, rgba(124, 92, 255, .14), transparent 60%),
+        radial-gradient(1000px 500px at 110% 0%, rgba(255, 138, 61, .08), transparent 55%),
+        var(--bg);
+      background-attachment: fixed;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(10, 14, 26, .72);
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .topbar-inner {
+      max-width: 1180px; margin: 0 auto; padding: .65rem 1rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .brand { display: flex; align-items: center; gap: .5rem; font-weight: 800; letter-spacing: -.01em; }
+    .brand-mark {
+      display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--hot));
+      box-shadow: 0 4px 14px rgba(124, 92, 255, .4); font-size: 1rem;
+    }
+    .brand-accent { color: var(--hot); }
+    .topbar-badge {
+      font-size: .72rem; font-weight: 700; color: var(--ok);
+      border: 1px solid rgba(52, 211, 153, .3); background: var(--ok-soft);
+      padding: .25rem .6rem; border-radius: 999px; white-space: nowrap;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    .hero {
+      position: relative; overflow: hidden;
+      padding: clamp(1.6rem, 4vw, 2.75rem);
+      border: 1px solid rgba(124, 92, 255, .4); border-radius: 22px;
+      background:
+        radial-gradient(circle at 88% 10%, rgba(255, 138, 61, .22) 0, transparent 38%),
+        radial-gradient(circle at 15% 120%, rgba(124, 92, 255, .32) 0, transparent 45%),
+        linear-gradient(135deg, #1d1745, #0f1524 72%);
+      box-shadow: 0 24px 80px rgba(3, 6, 18, .55);
+    }
+    .hero:after {
+      content: ""; position: absolute; width: 220px; height: 220px; right: -70px; bottom: -110px;
+      border: 32px solid rgba(255, 138, 61, .18); border-radius: 50%; pointer-events: none;
+    }
+    .hero:before {
+      content: ""; position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 26px 26px; opacity: .35; pointer-events: none;
+    }
+    .eyebrow { color: #c9b8ff; font-size: .72rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    .hero h1 { position: relative; z-index: 1; margin: .4rem 0 .5rem; font-size: clamp(2.2rem, 7vw, 4.2rem); letter-spacing: -.055em; line-height: 1.02; }
+    .hero h1 .accent { background: linear-gradient(100deg, var(--accent-2), var(--hot)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p { position: relative; z-index: 1; color: #c7d3f0; max-width: 66ch; line-height: 1.6; margin: 0; }
+    .toolbar, .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(160deg, var(--surface), var(--bg-soft));
+      padding: 1.15rem; box-shadow: var(--shadow);
+    }
+    .editor-card { margin-top: 1.15rem; }
+    .section-title {
+      display: flex; align-items: center; gap: .55rem;
+      margin: 1.5rem 0 .35rem; font-size: .78rem; font-weight: 800;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim);
+    }
+    .section-title:before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: linear-gradient(135deg, var(--accent), var(--hot)); }
+    h2 { font-size: 1.02rem; margin: 0 0 .7rem; letter-spacing: .01em; }
+    label { display: block; color: var(--text-soft); font-size: .76rem; font-weight: 700; margin: .7rem 0 .3rem; }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      background: #0c1322; color: var(--text); padding: .62rem .7rem; font: inherit;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:hover, select:hover, textarea:hover { border-color: #334468; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    textarea { min-height: 78px; resize: vertical; line-height: 1.5; }
+    button {
+      cursor: pointer; border: 1px solid transparent; border-radius: 999px;
+      padding: .66rem 1.05rem; color: #fff; background: var(--accent);
+      font-weight: 700; font-size: .9rem; letter-spacing: .01em;
+      transition: transform .15s, background .15s, box-shadow .15s, opacity .15s;
+    }
+    button:hover { background: var(--accent-2); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(124, 92, 255, .35); }
+    button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+    button.secondary { background: var(--surface-2); border-color: var(--line); color: var(--text-soft); }
+    button.secondary:hover { background: #243150; box-shadow: none; color: var(--text); }
+    button.danger { background: rgba(251, 93, 122, .15); border-color: rgba(251, 93, 122, .4); color: #ffb3c2; }
+    button.danger:hover { background: rgba(251, 93, 122, .28); box-shadow: none; }
+    button:disabled { cursor: wait; opacity: .5; transform: none; box-shadow: none; }
+    .actions { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; }
+    .status { padding: .75rem .85rem; border-radius: var(--radius-sm); background: var(--bg-soft); color: var(--text-soft); line-height: 1.5; border: 1px solid var(--line-soft); }
+    .status.success { color: #a7f3d0; border-color: rgba(52, 211, 153, .4); background: var(--ok-soft); }
+    .status.error { color: #fecdd3; border-color: rgba(251, 93, 122, .45); background: var(--danger-soft); }
+    .onboarding { margin-top: 1rem; border: 1px solid rgba(255, 138, 61, .45); border-radius: var(--radius); background: linear-gradient(135deg, rgba(255, 138, 61, .14), var(--bg-soft) 70%); padding: 1.2rem; }
+    .onboarding h2 { color: #ffd6b8; }
+    .step-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .6rem; margin: .85rem 0; }
+    .step { padding: .7rem .8rem; border-radius: 12px; background: rgba(10, 14, 26, .6); border: 1px solid var(--line); color: var(--text-soft); font-size: .9rem; }
+    .step.complete { border-color: rgba(52, 211, 153, .45); color: #a7f3d0; background: var(--ok-soft); }
+    .engine-card { margin-top: 1rem; }
+    .engine-option { display: grid; grid-template-columns: auto 1fr auto; gap: .7rem; align-items: center; padding: .7rem 0; border-bottom: 1px solid var(--line-soft); }
+    .engine-option:last-child { border-bottom: 0; }
+    .engine-option input { width: auto; accent-color: var(--accent); }
+    .engine-option .engine-copy { min-width: 0; }
+    .engine-option .engine-copy small { line-height: 1.45; }
+    .pill { display: inline-block; padding: .2rem .5rem; border-radius: 999px; font-size: .68rem; font-weight: 800; background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--line); }
+    .pill.ready { background: var(--ok-soft); color: #a7f3d0; border-color: rgba(52, 211, 153, .4); }
+    .pill.heavy { background: rgba(124, 92, 255, .16); color: #d8ccff; border-color: rgba(124, 92, 255, .4); }
+    .script-line {
+      display: grid; grid-template-columns: minmax(130px, .22fr) 1fr minmax(180px, .3fr) auto;
+      gap: .6rem; align-items: start; padding: .85rem 0; border-bottom: 1px solid var(--line-soft);
+      transition: opacity .2s;
+    }
+    .script-line:last-child { border-bottom: 0; }
+    .script-line.muted { opacity: .5; }
+    .line-meta { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
+    .line-meta input { padding: .48rem .55rem; font-size: .85rem; }
+    .line-tools { display: flex; align-items: center; gap: .5rem; }
+    .line-tools label { display: flex; align-items: center; gap: .3rem; margin: 0; white-space: nowrap; color: var(--text-soft); }
+    .line-tools input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+    .estimate { color: #b6c2ff; font-size: .74rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .lane-card { margin-top: .9rem; padding: .9rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(12, 19, 34, .6); }
+    .cue-row { display: grid; grid-template-columns: 1.05fr .5fr .6fr .5fr .6fr .6fr .7fr .6fr .6fr .6fr .6fr auto; gap: .45rem; align-items: end; margin-top: .55rem; }
+    .cue-row label { margin-top: 0; }
+    .cue-row button { padding: .45rem .65rem; }
+    .line-buttons { display: flex; gap: .3rem; padding-top: .2rem; }
+    .line-buttons button { padding: .48rem .62rem; font-size: .8rem; }
+    .voice { padding: .6rem 0; border-bottom: 1px solid var(--line-soft); }
+    .voice:last-child { border-bottom: 0; }
+    small, .muted { color: var(--text-dim); }
+    a { color: var(--accent-2); }
+    pre { overflow: auto; white-space: pre-wrap; color: #c9bcff; font-family: var(--mono); font-size: .82rem; }
+    .empty { color: var(--text-dim); font-style: italic; padding: .5rem 0; }
+    audio { width: 100%; margin-top: .5rem; }
+    progress { accent-color: var(--accent); }
+    .footer {
+      max-width: 1180px; margin: 2.5rem auto 0; padding: 1.25rem 1rem 2rem;
+      display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+      border-top: 1px solid var(--line-soft); color: var(--text-dim); font-size: .85rem;
+    }
+    @media (max-width: 1100px) { .cue-row { grid-template-columns: repeat(4, minmax(0, 1fr)); } .cue-row > :first-child { grid-column: span 4; } .cue-row .actions { justify-content: flex-end; } }
+    @media (max-width: 980px) { .cue-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cue-row > :first-child { grid-column: span 3; } .cue-row .actions { justify-content: flex-end; } }
+    @media (max-width: 760px) { .script-line { grid-template-columns: 1fr; } .cue-row { grid-template-columns: 1fr 1fr; } .cue-row > :first-child { grid-column: span 2; } .cue-row .actions { grid-column: span 2; justify-content: flex-end; } .line-buttons { justify-content: flex-end; } main { padding-inline: .7rem; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-mark">🌶️</span><span>HotPepper<span class="brand-accent">Podcast</span></span></div>
+      <div class="topbar-badge" title="Everything stays on this computer">🔒 Local-only</div>
+    </div>
+  </header>
+  <main>
+  <section class="hero">
+    <div class="eyebrow">Local authoring studio</div>
+    <h1>HotPepper<span class="accent">Podcast</span></h1>
+    <p>Shape the conversation, choose the voices, and render your authored script locally. Nothing rewrites your words and nothing leaves this computer.</p>
+  </section>
+
+  <section id="onboarding" class="onboarding" hidden>
+    <h2>Let’s make your first episode</h2>
+    <p class="muted">HotPepperPodcast keeps your words local. We’ll check the workspace, choose an available voice engine, and guide you to a first render.</p>
+    <div id="onboarding-steps" class="step-list"></div>
+    <div class="actions"><button id="onboarding-action" onclick="runOnboardingAction()">Get started</button><button class="secondary" onclick="importScriptPrompt()">Import a script</button><button class="secondary" onclick="dismissOnboarding()">I’ll explore first</button></div>
+  </section>
+
+  <section class="toolbar">
+    <div class="card">
+      <h2>Episode workspace</h2>
+      <label for="project-picker">Project file</label>
+      <select id="project-picker" aria-label="Project file"></select>
+      <div id="project-status" class="status" style="margin-top:.7rem">Loading projects…</div>
+    </div>
+    <div class="card">
+      <h2>Installed voices</h2>
+      <div id="voices" class="status">Loading voices…</div>
+    </div>
+    <div class="card">
+      <h2>Voice catalog</h2>
+      <div id="catalog" class="status">Loading catalog…</div>
+    </div>
+    <div class="card engine-card">
+      <h2>Voice engine</h2>
+      <div class="muted" style="margin-bottom:.5rem">Choose a ready local engine for this render. Piper stays the neural default; eSpeak is a lightweight fallback; XTTS is an advanced opt-in.</div>
+      <div id="engines" class="status">Checking engines…</div>
+    </div>
+  </section>
+
+  <section class="card editor-card">
+    <div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap">
+      <div><h2>Production timeline</h2><div class="muted">Shape the spoken order, chapter markers, pauses, and enabled lines.</div></div>
+      <div class="actions"><button class="secondary" id="add-line" onclick="addLine()">＋ Add line</button><button id="save" onclick="saveProject()">Save changes</button></div>
+    </div>
+    <div class="grid" style="margin-top:.5rem">
+      <div><label for="title">Episode title</label><input id="title" autocomplete="off"></div>
+      <div><label for="author">Author</label><input id="author" autocomplete="off"></div>
+    </div>
+    <label for="description">Description</label><textarea id="description"></textarea>
+    <div id="timeline-summary" class="status" style="margin-top:.8rem">Timeline estimate: —</div>
+    <div class="lane-card" style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+      <label style="margin:0;display:flex;align-items:center;gap:.4rem"><input id="export-stems" type="checkbox"> Export aligned speech/music/effects WAV stems</label>
+      <label style="margin:0;display:flex;align-items:center;gap:.4rem"><input id="loudness-check" type="checkbox"> Check loudness</label>
+      <span class="muted">Optional mastering outputs and checks are listed with the render.</span>
+    </div>
+    <div class="grid" style="margin-top:.7rem">
+      <div><label for="artwork">Artwork (local media/ image)</label><select id="artwork"><option value="">No artwork selected</option></select></div>
+      <div><label style="display:flex;align-items:center;gap:.4rem;margin-top:1.9rem"><input id="package-export" type="checkbox"> Export feed/package</label></div>
+      <div><label for="subtitle">Publish subtitle</label><input id="subtitle" autocomplete="off"></div>
+      <div><label for="series">Series</label><input id="series" autocomplete="off"></div>
+      <div><label for="keywords">Keywords (comma-separated)</label><input id="keywords" autocomplete="off"></div>
+      <div><label for="category">Podcast category</label><input id="category" placeholder="Technology" autocomplete="off"></div>
+      <div><label for="website">Website</label><input id="website" type="url" autocomplete="off"></div>
+      <div><label for="language">Language</label><input id="language" value="en" placeholder="en-US" autocomplete="off"></div>
+      <div><label for="episode-type">Episode type</label><select id="episode-type"><option value="full">Full</option><option value="trailer">Trailer</option><option value="bonus">Bonus</option></select></div>
+      <div><label for="season-number">Season number</label><input id="season-number" type="number" min="1" max="100000"></div>
+      <div><label for="episode-number">Episode number</label><input id="episode-number" type="number" min="1" max="100000"></div>
+      <div><label style="display:flex;align-items:center;gap:.4rem;margin-top:1.9rem"><input id="explicit" type="checkbox"> Explicit content</label></div>
+      <div><label for="copyright">Copyright</label><input id="copyright" autocomplete="off"></div>
+    </div>
+    <div class="lane-card">
+      <strong>Optional local audio lanes</strong>
+      <div class="muted" style="margin-top:.25rem">Use files already inside this project's <code>media/</code> folder. Music may loop; effects are one-shot. Ducking lowers opted-in cues during rendered speech. No uploads or external URLs.</div>
+      <div id="media-status" class="muted" style="margin-top:.45rem">Loading local media…</div>
+      <div id="music-lane"></div>
+      <div id="effects-lane"></div>
+    </div>
+    <div id="script" style="margin-top:.8rem"></div>
+  </section>
+
+  <section class="card editor-card">
+    <h2>Render episode</h2>
+    <p class="muted">Rendering uses the selected project and the chosen local voice engine.</p>
+    <div class="actions"><button id="render" onclick="startRender()">Render episode</button><div id="job" class="status" style="flex:1;min-width:220px">No render started.</div></div>
+    <div id="preview" style="margin-top:.8rem"></div>
+  </section>
+  </main>
+  <footer class="footer">
+    <span>🌶️ HotPepperPodcast · your words, rendered locally</span>
+    <span>No uploads · no rewriting · no cloud</span>
+  </footer>
+<script>
+const $ = id => document.getElementById(id);
+let activeProject = null;
+let activeFile = '';
+let busy = false;
+let dirty = false;
+let engines = [];
+let selectedEngine = 'direct';
+let onboardingState = null;
+async function request(path, options = {}) { const response = await fetch(path, options); const data = await response.json(); if (!response.ok) throw new Error(data.error || response.statusText); return data; }
+function projectUrl(file) { return '/api/project?project=' + encodeURIComponent(file); }
+function setStatus(message, kind = '') { const node = $('project-status'); node.textContent = message; node.className = 'status' + (kind ? ' ' + kind : ''); }
+async function loadProjects(preferred = '') {
+  try {
+    const data = await request('/api/projects');
+    const picker = $('project-picker');
+    picker.innerHTML = data.projects.map(file => `<option value="${escapeHtml(file)}">${escapeHtml(file)}</option>`).join('');
+    if (!data.projects.length) { picker.innerHTML = '<option>No projects found</option>'; setStatus('No YAML/JSON projects found in the configured project directory.', 'error'); return; }
+    activeFile = data.projects.includes(preferred) ? preferred : data.projects[0]; picker.value = activeFile; await loadProject(activeFile);
+  } catch (error) { setStatus(error.message, 'error'); }
+}
+async function loadProject(file) {
+  if (dirty && !window.confirm('Discard unsaved changes and switch projects?')) { $('project-picker').value = activeFile; return; }
+  try { activeFile = file; activeProject = await request(projectUrl(file)); dirty = false; renderEditor(); await loadMedia(); setStatus(`Loaded ${file}`, 'success'); $('job').textContent = 'No render started.'; }
+  catch (error) { setStatus(error.message, 'error'); }
+}
+function renderEditor() {
+  const meta = activeProject.project || {};
+  $('title').value = meta.title || ''; $('author').value = meta.author || ''; $('description').value = meta.description || ''; $('export-stems').checked = meta.export_stems === true; $('loudness-check').checked = meta.loudness_check === true; $('package-export').checked = meta.package_export === true; $('artwork').value = meta.artwork || '';  const publish = meta.publish_metadata || {}; $('subtitle').value = publish.subtitle || ''; $('series').value = publish.series || ''; $('keywords').value = (publish.keywords || []).join(', '); $('category').value = publish.category || ''; $('website').value = publish.website || ''; $('language').value = publish.language || 'en';
+ $('episode-type').value = publish.episode_type || 'full'; $('season-number').value = publish.season_number || ''; $('episode-number').value = publish.episode_number || ''; $('explicit').checked = publish.explicit === true; $('copyright').value = publish.copyright || '';  ['export-stems', 'loudness-check','package-export', 'artwork', 'subtitle', 'series', 'keywords', 'category', 'website',
+ 'language', 'episode-type', 'season-number', 'episode-number', 'explicit', 'copyright'].forEach(id => {
+ $(id).onchange = () => { dirty = true; }; $(id).oninput = () => { dirty = true; }; });
+  renderLanes();
+  const speakers = activeProject.speakers || [];
+  const lines = activeProject.script || [];
+  $('script').innerHTML = lines.length ? lines.map((line, index) => { const speaker = speakers.find(item => item.id === line.speaker); const enabled = line.enabled !== false; const pause = line.pause_after_ms ?? ''; const estimate = estimateLine(line, speaker); return `<div class="script-line ${enabled ? '' : 'muted'}" data-index="${index}"><select aria-label="Speaker">${speakers.map(s => `<option value="${escapeHtml(s.id)}" ${s.id === line.speaker ? 'selected' : ''}>${escapeHtml(s.name)} (${escapeHtml(s.id)})</option>`).join('')}</select><textarea aria-label="Script text">${escapeHtml(line.text)}</textarea><div class="line-meta"><input aria-label="Chapter marker" placeholder="Chapter marker" value="${escapeHtml(line.chapter || '')}"><input aria-label="Pause after in milliseconds" type="number" min="0" max="60000" step="50" placeholder="Pause ms" value="${escapeHtml(pause)}"><span class="estimate">~${formatDuration(estimate)} · ${enabled ? 'included' : 'muted'}</span></div><div class="line-tools"><label title="Include this line in render"><input aria-label="Enabled" type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleLine(${index}, this.checked)"> On</label><div class="line-buttons"><button class="secondary" onclick="moveLine(${index},-1)" title="Move up">↑</button><button class="secondary" onclick="moveLine(${index},1)" title="Move down">↓</button><button class="danger" onclick="removeLine(${index})" title="Remove line">×</button></div></div></div>`; }).join('') : '<div class="empty">No script lines yet. Add the first line to begin.</div>';
+  document.querySelectorAll('#title, #author, #description, #subtitle, #series, #keywords, #category, #website, #language
+, #episode-type, #season-number, #episode-number, #explicit, #copyright, #script select, #script textarea, #script input').forEach(node => { node.addEventListener('input', () => { dirty = true; updateTimelineSummary(); }); node.addEventListener('change', () => { dirty = true; updateTimelineSummary(); }); });
+  updateTimelineSummary();
+}
+function estimateLine(line, speaker) { const speed = Number(speaker?.speed || 1); const spokenSeconds = (String(line.text || '').trim().length / 15) / speed; const pauseSeconds = Number(line.pause_after_ms ?? speaker?.pause_after_ms ?? 350) / 1000; return Math.max(0, spokenSeconds + pauseSeconds); }
+function formatDuration(seconds) { const total = Math.round(seconds); const minutes = Math.floor(total / 60); return `${minutes}:${String(total % 60).padStart(2, '0')}`; }
+function updateTimelineSummary() { if (!activeProject) return; const rows = [...document.querySelectorAll('.script-line')]; let total = 0; let enabled = 0; rows.forEach(row => { const index = Number(row.dataset.index); const original = activeProject.script[index] || {}; const speaker = activeProject.speakers.find(item => item.id === row.querySelector('select')?.value); const line = { ...original, text: row.querySelector('textarea')?.value || '', pause_after_ms: row.querySelectorAll('input')[1]?.value === '' ? null : Number(row.querySelectorAll('input')[1]?.value), enabled: row.querySelector('input[type="checkbox"]')?.checked !== false }; if (line.enabled) { enabled++; total += estimateLine(line, speaker); } }); $('timeline-summary').innerHTML = `<strong>Timeline estimate</strong> · ${formatDuration(total)} · ${enabled}/${rows.length} line(s) included`; }
+function toggleLine(index, enabled) { syncEditor(); activeProject.script[index].enabled = enabled; dirty = true; renderEditor(); }
+function renderLanes() {
+  const timeline = activeProject.project.timeline || {};
+  const renderLane = (name, label) => {
+    const cues = timeline[name] || [];
+    const rows = cues.map((cue, index) => {
+      const files = mediaFiles.includes(cue.file) ? mediaFiles : [cue.file, ...mediaFiles];
+      const options = files.map(file => `<option value="${escapeHtml(file)}" ${file === cue.file ? 'selected' : ''}>${escapeHtml(file)}${mediaFiles.includes(file) ? '' : ' (missing)'}</option>`).join('');
+      return `<div class="cue-row" data-lane="${name}" data-cue="${index}"><div><label>File</label><select aria-label="${label} file">${options}</select></div><div><label>Start line</label><input type="number" min="1" max="${activeProject.script.length}" value="${cue.start_line ?? 1}" aria-label="${label} start line"></div><div><label>Offset ms</label><input type="number" min="0" max="600000" step="50" value="${cue.offset_ms ?? 0}" aria-label="${label} offset"></div><div><label>Volume</label><input type="number" min="0" max="2" step=".05" value="${cue.volume ?? 1}" aria-label="${label} volume"></div><div><label>Fade in ms</label><input type="number" min="0" max="600000" step="50" value="${cue.fade_in_ms ?? 0}" aria-label="${label} fade in"></div><div><label>Fade out ms</label><input type="number" min="0" max="600000" step="50" value="${cue.fade_out_ms ?? 0}" aria-label="${label} fade out"></div><div><label>Ducking</label><label title="Lower this cue while speech is active"><input type="checkbox" ${cue.duck_speech ? 'checked' : ''} aria-label="${label} duck speech"> On</label></div><div><label>Duck %</label><input type="number" min="0" max="1" step=".05" value="${cue.duck_amount ?? .65}" aria-label="${label} duck amount"></div><div><label>Attack ms</label><input type="number" min="0" max="600000" step="10" value="${cue.duck_attack_ms ?? 80}" aria-label="${label} duck attack"></div><div><label>Release ms</label><input type="number" min="0" max="600000" step="10" value="${cue.duck_release_ms ?? 220}" aria-label="${label} duck release"></div><div class="actions">${name === 'music' ? `<label title="Repeat bed to episode end"><input type="checkbox" ${cue.loop !== false ? 'checked' : ''} aria-label="Loop music"> Loop</label>` : ''}<button class="danger" onclick="removeCue('${name}', ${index})">×</button></div></div>`;
+    }).join('');
+    return `<div class="lane-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem"><strong>${label}</strong><button class="secondary" onclick="addCue('${name}')">＋ Add</button></div>${rows || '<div class="empty">No cues yet.</div>'}</div>`;
+  };
+  $('music-lane').innerHTML = renderLane('music', 'Music bed');
+  $('effects-lane').innerHTML = renderLane('effects', 'Sound effects');
+  document.querySelectorAll('#music-lane input, #music-lane select, #effects-lane input, #effects-lane select').forEach(node => { node.addEventListener('input', () => { dirty = true; }); node.addEventListener('change', () => { dirty = true; }); });
+}
+let mediaFiles = [];
+async function loadMedia() {
+  try { const data = await request('/api/media?project=' + encodeURIComponent(activeFile)); mediaFiles = data.files || []; const artwork = await request('/api/artwork?project=' + encodeURIComponent(activeFile)); const select = $('artwork'); select.innerHTML = '<option value="">No artwork selected</option>' + (artwork.files || []).map(file => `<option value="${escapeHtml(file)}">${escapeHtml(file)}</option>`).join(''); select.value = activeProject.project.artwork || ''; $('media-status').textContent = mediaFiles.length ? `${mediaFiles.length} local audio file(s) available.` : 'Add WAV/MP3/OGG/FLAC/M4A/AAC files to the project media/ folder, then reload.'; renderLanes(); }
+  catch (error) { $('media-status').textContent = error.message; }
+}
+function collectLanes() {
+  const timeline = { music: [], effects: [] };
+  for (const name of ['music', 'effects']) {
+    const existing = activeProject.project.timeline?.[name] || [];
+    document.querySelectorAll(`#${name}-lane .cue-row`).forEach((row, index) => {
+      const inputs = row.querySelectorAll('input');
+      timeline[name].push({ ...existing[index], file: row.querySelector('select').value, start_line: Number(inputs[0].value), offset_ms: Number(inputs[1].value), volume: Number(inputs[2].value), fade_in_ms: Number(inputs[3].value), fade_out_ms: Number(inputs[4].value), duck_speech: inputs[5].checked, duck_amount: Number(inputs[6].value), duck_attack_ms: Number(inputs[7].value), duck_release_ms: Number(inputs[8].value), ...(name === 'music' ? { loop: inputs[9]?.checked !== false } : {}) });
+    });
+  }
+  return timeline;
+}
+function addCue(name) { if (!activeProject || !mediaFiles.length) return; syncEditor(); activeProject.project.timeline ||= {}; activeProject.project.timeline[name] ||= []; activeProject.project.timeline[name].push({ file: mediaFiles[0], start_line: 1, offset_ms: 0, volume: 1, fade_in_ms: 0, fade_out_ms: 0, duck_speech: false, duck_amount: .65, duck_attack_ms: 80, duck_release_ms: 220, ...(name === 'music' ? { loop: true } : {}) }); dirty = true; renderLanes(); }
+function removeCue(name, index) { syncEditor(); activeProject.project.timeline[name].splice(index, 1); dirty = true; renderLanes(); }
+function collectProject() {
+  const next = JSON.parse(JSON.stringify(activeProject));
+  next.project.title = $('title').value.trim(); next.project.author = $('author').value.trim(); next.project.description = $('description').value.trim();
+  if ($('export-stems').checked) next.project.export_stems = true; else delete next.project.export_stems;
+  if ($('loudness-check').checked) next.project.loudness_check = true; else delete next.project.loudness_check;
+  if ($('package-export').checked) next.project.package_export = true; else delete next.project.package_export;
+  if ($('artwork').value) next.project.artwork = $('artwork').value; else delete next.project.artwork;
+  const keywords = $('keywords').value.split(',').map(item => item.trim()).filter(Boolean);  const publish = { subtitle: $('subtitle').value.trim(), series: $('series').value.trim(), keywords, category: $('category').value.trim(),
+ website: $('website').value.trim(), language: $('language').value.trim(), episode_type: $('episode-type').value, season_number: $('season-number').value === '' ? null : Number($('season-number').value), episode_number: $('episode-number').value === '' ? null : Number($('episode-number').value), explicit: $('explicit').checked, copyright: $('copyright').value.trim() };
+  if (Object.values(publish).some(value => Array.isArray(value) ? value.length : value)) next.project.publish_metadata = publish; else delete next.project.publish_metadata;
+  next.project.timeline = collectLanes();
+  next.script = [...document.querySelectorAll('.script-line')].map((row, index) => {
+    const original = activeProject.script[index] || {};
+    const inputs = row.querySelectorAll('input');
+    const chapter = inputs[0].value.trim();
+    const pause = inputs[1].value === '' ? null : Number(inputs[1].value);
+    return { ...original, speaker: row.querySelector('select').value, text: row.querySelector('textarea').value.trim(), chapter: chapter || null, pause_after_ms: pause, enabled: inputs[2].checked };
+  });
+  return next;
+}
+function syncEditor() { if (activeProject) activeProject = collectProject(); }
+function addLine() { if (!activeProject) return; syncEditor(); activeProject.script.push({ speaker: activeProject.speakers[0]?.id || '', text: '', enabled: true, pause_after_ms: null, chapter: null }); dirty = true; renderEditor(); document.querySelector('#script textarea:last-of-type')?.focus(); }
+function removeLine(index) { if (!activeProject) return; syncEditor(); activeProject.script.splice(index, 1); activeProject.project.timeline ||= {}; for (const lane of ['music', 'effects']) { const cues = activeProject.project.timeline[lane] || []; activeProject.project.timeline[lane] = cues.filter(cue => cue.start_line !== index + 1).map(cue => ({ ...cue, start_line: cue.start_line > index + 1 ? cue.start_line - 1 : cue.start_line })); } dirty = true; renderEditor(); }
+function moveLine(index, amount) { if (!activeProject) return; syncEditor(); const target = index + amount; if (target < 0 || target >= activeProject.script.length) return; [activeProject.script[index], activeProject.script[target]] = [activeProject.script[target], activeProject.script[index]]; for (const lane of ['music', 'effects']) for (const cue of (activeProject.project.timeline?.[lane] || [])) { if (cue.start_line === index + 1) cue.start_line = target + 1; else if (cue.start_line === target + 1) cue.start_line = index + 1; } dirty = true; renderEditor(); }
+async function saveProject() {
+  if (!activeProject || busy) return; busy = true; $('save').disabled = true; $('add-line').disabled = true; setStatus('Validating and saving…');
+  try { activeProject = await request(projectUrl(activeFile), { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(collectProject()) }); dirty = false; renderEditor(); setStatus(`Saved ${activeFile}`, 'success'); }
+  catch (error) { setStatus(error.message, 'error'); }
+  finally { busy = false; $('save').disabled = false; $('add-line').disabled = false; }
+}
+function renderEngines() {
+  const node = $('engines');
+  if (!engines.length) { node.textContent = 'No engine information available.'; return; }
+  node.innerHTML = engines.map(engine => `<label class="engine-option"><input type="radio" name="engine" value="${escapeHtml(engine.id)}" ${engine.id === selectedEngine || (!engines.some(item => item.id === selectedEngine) && engine.ready) ? 'checked' : ''} ${engine.ready ? '' : 'disabled'} onchange="selectedEngine=this.value"><span class="engine-copy"><strong>${escapeHtml(engine.display_name)}</strong><br><small>${escapeHtml(engine.description)}${engine.install_hint ? ` · ${escapeHtml(engine.install_hint)}` : ''}</small></span><span class="pill ${engine.ready ? 'ready' : ''} ${engine.heavy ? 'heavy' : ''}">${engine.ready ? 'Ready' : (engine.heavy ? 'Optional' : 'Setup needed')}</span></label>`).join('');
+  const ready = engines.find(item => item.id === selectedEngine && item.ready) || engines.find(item => item.ready);
+  if (ready && !engines.some(item => item.id === selectedEngine && item.ready)) selectedEngine = ready.id;
+}
+async function loadEngines() { try { const data = await request('/api/engines'); engines = data.engines || []; renderEngines(); } catch (error) { $('engines').textContent = error.message; } }
+function renderOnboarding() {
+  if (!onboardingState) return;
+  $('onboarding').hidden = localStorage.getItem('hpp-onboarding-dismissed') === '1' || !onboardingState.needs_setup;
+  $('onboarding-steps').innerHTML = onboardingState.steps.map(step => `<div class="step ${step.complete ? 'complete' : ''}">${step.complete ? '✓' : '○'} ${escapeHtml(step.label)}</div>`).join('');
+  $('onboarding-action').textContent = onboardingState.project_count ? 'Choose an engine' : 'Open the example project';
+}
+async function loadOnboarding() { try { onboardingState = await request('/api/onboarding'); renderOnboarding(); } catch (error) { onboardingState = null; } }
+async function runOnboardingAction() { if (!onboardingState) return; if (!onboardingState.project_count) { try { const created = await request('/api/project/sample', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({})}); await loadProjects(created.project); await loadOnboarding(); $('job').textContent = 'Starter project created. Edit the sample words, save, then render.'; } catch (error) { $('job').textContent = error.message; $('job').className = 'status error'; } return; } $('engines')?.scrollIntoView({behavior:'smooth', block:'center'}); }
+function importScriptPrompt() { const text = window.prompt('Paste a labeled script (for example, Host: Welcome).'); if (!text) return; importScript(text); }
+async function importScript(text) { try { const created = await request('/api/project/import', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, mode:'narrator'})}); await loadProjects(created.project); await loadOnboarding(); $('job').textContent = 'Script imported. Review the timeline, save, then render.'; } catch (error) { $('job').textContent = error.message; $('job').className = 'status error'; } }
+function dismissOnboarding() { localStorage.setItem('hpp-onboarding-dismissed', '1'); $('onboarding').hidden = true; }
+async function startRender() {
+  if (!activeFile || busy) return; if (dirty) { $('job').textContent = 'Save your timeline changes before rendering.'; $('job').className = 'status error'; return; } syncEditor(); if (!activeProject.script.some(line => line.enabled !== false)) { $('job').textContent = 'Enable at least one script line before rendering.'; $('job').className = 'status error'; return; } $('job').className = 'status'; $('render').disabled = true; $('job').textContent = 'Queueing render…';
+  try { const job = await request('/api/render', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({project: activeFile, provider: selectedEngine})}); poll(job.id); }
+  catch (error) { $('job').textContent = error.message; $('render').disabled = false; }
+}
+async function poll(id) { try { const job = await request('/api/jobs/' + encodeURIComponent(id)); $('job').innerHTML = `<strong>${escapeHtml(job.status)}</strong>${job.error ? `<br>${escapeHtml(job.error)}` : ''}${job.files?.length ? `<pre>${escapeHtml(job.files.join('\n'))}</pre>` : ''}`; const percent = job.total_steps ? Math.round((job.progress / job.total_steps) * 100) : 0; $('job').innerHTML = `<strong>${escapeHtml(job.status)}</strong> · ${percent}%<br><small>${escapeHtml(job.step || '')}</small>${job.error ? `<br>${escapeHtml(job.error)}` : ''}${job.status === 'queued' || job.status === 'running' ? `<progress max="100" value="${percent}" style="width:100%;margin-top:.5rem"></progress>` : ''}`; if (job.status === 'queued' || job.status === 'running') return setTimeout(() => poll(id), 500); if (job.status === 'completed') renderPreview(job); } catch (error) { $('job').textContent = error.message; } $('render').disabled = false; }
+function renderPreview(job) { const audio = job.outputs?.find(output => output.media_type?.startsWith('audio/')); const loudness = job.loudness ? `<div class="status ${job.loudness.status === 'pass' ? 'success' : 'error'}" style="margin-bottom:.6rem">Loudness ${escapeHtml(job.loudness.status)} · RMS ${Number(job.loudness.rms_dbfs).toFixed(2)} dBFS · peak ${Number(job.loudness.peak_dbfs).toFixed(2)} dBFS</div>` : ''; const packageLinks = job.package?.outputs?.length ? `<div class="status" style="margin-top:.6rem"><strong>Package</strong><br>${job.package.outputs.map(output => `<a href="${escapeHtml(output.url)}" download="${escapeHtml(output.name)}">Download ${escapeHtml(output.name)}</a>`).join(' · ')}</div>` : ''; $('preview').innerHTML = loudness + (audio ? `<h3 style="font-size:.9rem">Preview</h3><audio controls preload="metadata" src="${escapeHtml(audio.url)}"></audio><div class="muted" style="margin-top:.4rem"><a href="${escapeHtml(audio.url)}" download="${escapeHtml(audio.name)}">Download ${escapeHtml(audio.name)}</a></div>` : '') + packageLinks; }
+function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+$('project-picker').addEventListener('change', event => loadProject(event.target.value));
+async function loadVoices() { try { const data = await request('/api/voices'); $('voices').innerHTML = data.voices.length ? data.voices.map(v => `<div class="voice"><strong>${escapeHtml(v.id)}</strong><br><small>${escapeHtml(v.language || 'unknown')} · ${v.sample_rate || '?'} Hz · ${v.num_speakers || 1} speaker(s)</small></div>`).join('') : 'No installed voices found.'; } catch (error) { $('voices').textContent = error.message; } }
+function formatBytes(value) { if (!value) return 'size unknown'; const units = ['B','KB','MB','GB']; let n = value, i = 0; while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; } return `${n.toFixed(i ? 1 : 0)} ${units[i]}`; }
+async function loadCatalog() { try { const data = await request('/api/catalog'); const counts = data.voices.reduce((acc, voice) => { acc[voice.status] = (acc[voice.status] || 0) + 1; return acc; }, {}); const notice = data.notices?.length ? `<small>${escapeHtml(data.notices.join(' · '))}</small><br>` : ''; $('catalog').innerHTML = `${notice}<strong>${data.voices.length} catalog voices</strong><br><small>${counts.installed || 0} verified · ${counts.incomplete || 0} incomplete · ${counts.invalid || 0} invalid · ${counts.available || 0} available</small><div style="margin-top:.7rem;max-height:260px;overflow:auto">${data.voices.slice(0, 12).map(v => `<div class="voice"><strong>${escapeHtml(v.id)}</strong> <span class="muted">${escapeHtml(v.status)}</span><br><small>${escapeHtml(v.language)} · ${escapeHtml(v.quality)} · ${formatBytes(v.size_bytes)} · <a href="${escapeHtml(v.model_card_url)}" target="_blank" rel="noreferrer">model card</a></small></div>`).join('')}</div>`; } catch (error) { $('catalog').innerHTML = `<span class="muted">Catalog unavailable:</span> ${escapeHtml(error.message)}<br><small>Use the CLI catalog command when offline or with no cached manifest.</small>`; } }
+loadProjects(); loadVoices(); loadCatalog(); loadEngines(); loadOnboarding();
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hotpepperpodcast"
+version = "0.1.0"
+description = "Turn an authored script into a local, publishable podcast package."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "MaximumHeat" }]
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+xtts = ["TTS>=0.22.0"]
+packaging = ["pyinstaller>=6.0", "build>=1.0"]
+
+[project.scripts]
+hotpepperpodcast = "hotpepperpodcast.cli:main"
+hotpepperpodcast-web = "hotpepperpodcast.web_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+hotpepperpodcast = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,3 @@
+Host: Welcome to HotPepperPodcast.
+Guest: This episode is rendered from a script you wrote.
+Host: In the next milestone, we will add a local web interface and production tracks.
