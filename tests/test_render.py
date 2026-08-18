@@ -9,7 +9,7 @@ from hotpepperpodcast.render import RenderError, _cue_gain, _duck_gain, analyze_
 
 class FakeProvider:
     def __init__(self, calls): self.calls = calls
-    def synthesize(self, text, voice, output_path, speed=1.0):
+    def synthesize(self, text, voice, output_path, speed=1.0, speaker_id=None):
         self.calls.append((text, voice, speed))
         with wave.open(str(output_path), "wb") as out:
             out.setnchannels(1); out.setsampwidth(2); out.setframerate(22050)
@@ -539,7 +539,7 @@ def test_unrecorded_package_is_not_deleted(tmp_path):
 
 def test_incompatible_wav_rejected(tmp_path):
     class Bad(FakeProvider):
-        def synthesize(self, text, voice, output_path, speed=1.0):
+        def synthesize(self, text, voice, output_path, speed=1.0, speaker_id=None):
             self.calls.append(text)
             with wave.open(str(output_path), "wb") as out:
                 if len(self.calls) == 1:

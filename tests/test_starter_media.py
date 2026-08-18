@@ -49,7 +49,7 @@ def test_example_project_references_bundled_media():
 
 
 class FakeProvider:
-    def synthesize(self, text, voice, output_path, speed=1.0):
+    def synthesize(self, text, voice, output_path, speed=1.0, speaker_id=None):
         with wave.open(str(output_path), "wb") as output:
             output.setnchannels(1)
             output.setsampwidth(2)
