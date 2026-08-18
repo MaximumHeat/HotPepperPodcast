@@ -74,6 +74,20 @@ XTTS is an advanced opt-in engine exposed through the `xtts` extra:
 
 XTTS may require substantial RAM/GPU resources, downloads model weights on first use, and has separate model-license terms. Review those terms before use or redistribution. It is never imported by the default install and does not replace Piper.
 
+Kokoro-82M is the natural-sounding, Apache-2.0 engine with 54 preset voices
+(`af_heart`, `am_michael`, `bf_emma`, …). Install it and select
+`--provider kokoro`:
+
+```bash
+.venv/bin/python -m pip install kokoro   # model downloads on first use
+./scripts/run.sh render --provider kokoro --kokoro-voice af_heart \
+  --project episode.yaml --output-dir renders/kokoro
+```
+
+Kokoro runs on CPU by default (fast enough for batch narration) or CUDA when a
+CUDA build of torch is present. It is lazily imported, so the default install
+is unaffected.
+
 Inspect engine readiness without rendering:
 
 ```bash

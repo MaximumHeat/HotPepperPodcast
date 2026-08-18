@@ -229,6 +229,79 @@ class XTTSProvider:
         _require_wav(output_path, "XTTS")
 
 
+class KokoroProvider:
+    engine_id = "kokoro"
+    """Lazy Kokoro-82M adapter; the heavy torch dependency is never imported at startup."""
+
+    def __init__(self, lang_code: str = "a", voice: str = "af_heart", device: str | None = None):
+        self.lang_code = lang_code
+        self.default_voice = voice
+        self.device = device
+        self._pipeline = None
+
+    def _model(self):
+        if self._pipeline is None:
+            try:
+                from kokoro import KPipeline  # type: ignore[import-not-found]
+            except ImportError as exc:
+                raise TTSProviderError("Kokoro is not installed; install the optional 'kokoro' extra (pip install kokoro)") from exc
+            try:
+                self._pipeline = KPipeline(lang_code=self.lang_code, device=self.device)
+            except Exception as exc:
+                raise TTSProviderError(f"Kokoro could not load (lang_code {self.lang_code!r}): {exc}") from exc
+        return self._pipeline
+
+    def synthesize(self, text: str, voice: str, output_path: Path, speed: float = 1.0, speaker_id: str | None = None) -> None:
+        # Kokoro selects its speaker via the voice id ('af_heart', 'am_michael',
+        # 'bf_emma', …); a Piper speaker_id is not a Kokoro voice, so it is
+        # ignored here (same stance as XTTS).
+        if not text.strip():
+            raise TTSProviderError("cannot synthesize empty text")
+        voice_id = _kokoro_voice(voice, self.default_voice)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import torch  # type: ignore[import-not-found]
+            results = list(self._model()(text, voice=voice_id, speed=speed))
+            audio = torch.cat([r.audio for r in results if r.audio is not None])
+        except TTSProviderError:
+            raise
+        except Exception as exc:
+            raise TTSProviderError(f"Kokoro synthesis failed: {exc}") from exc
+        _write_wav_24k(output_path, audio)
+        _require_wav(output_path, "Kokoro")
+
+
+def _kokoro_voice(voice: str, default: str) -> str:
+    """Map a requested voice to a Kokoro voice id.
+
+    Kokoro ids look like 'af_heart' (lang prefix + '_' + name). Piper ids
+    ('en_US-amy-medium') contain '-', have no Kokoro equivalent, and fall back
+    to the default voice.
+    """
+    if not voice or voice in ("auto", "default"):
+        return default
+    if "-" in voice or " " in voice:
+        return default
+    return voice
+
+
+def _write_wav_24k(path: Path, audio) -> None:
+    """Write a float audio tensor/array as 16-bit mono WAV at 24 kHz."""
+    import wave
+
+    try:
+        import numpy as np
+    except ImportError as exc:
+        raise TTSProviderError("numpy is required to write Kokoro audio") from exc
+    arr = audio.detach().cpu().numpy() if hasattr(audio, "detach") else np.asarray(audio)
+    pcm = (np.clip(arr, -1.0, 1.0) * 32767.0).astype(np.int16)
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(24000)
+        handle.writeframes(pcm.tobytes())
+
+
 def _speaker_index(model, voice: str, speaker_id: str) -> int:
     """Resolve a Piper speaker reference to its numeric ``--speaker`` index."""
     if model.num_speakers is not None and model.num_speakers <= 1:
@@ -275,18 +348,20 @@ def engine_capabilities(piper_binary: str | Path = "piper", voice_directory: str
     piper_ready = (piper_path.is_file() and os.access(piper_path, os.X_OK)) or shutil.which(str(piper_binary)) is not None
     piper_ready = piper_ready and voice_root is not None and voice_root.is_dir() and bool(discover_voices(voice_root))
     xtts_ready = importlib.util.find_spec("TTS") is not None and bool(xtts_speaker_wav and Path(xtts_speaker_wav).expanduser().is_file())
+    kokoro_ready = importlib.util.find_spec("kokoro") is not None
     return [
         EngineCapability("piper-direct", "Piper · local", "Fast neural speech with downloaded local voices.", piper_ready, "Install Piper and a verified voice model.", "Voice ID such as en_US-lessac-medium.", license_note="Voice model licenses vary; review each MODEL_CARD."),
         EngineCapability("piper-http", "Piper · service", f"Use an existing local Piper HTTP service at {piper_url}.", _http_piper_ready(piper_url), "Start a compatible local Piper HTTP service.", "Voice/model ID accepted by the service.", license_note="Review the service's voice model license."),
         EngineCapability("espeak-ng", "eSpeak NG", "Tiny, immediate system fallback with broad language coverage and a synthetic voice.", bool(_find_espeak_binary()), "Install the espeak-ng system package (espeak is accepted as a fallback).", "Language/voice name such as en-us.", license_note="Review the detected system package license; eSpeak NG is GPLv3-or-later.",),
         EngineCapability("xtts", "XTTS · advanced", "Optional multilingual neural synthesis and voice cloning.", xtts_ready, "Install the optional xtts extra and configure an explicit speaker reference WAV, then review the XTTS model terms.", "Configured speaker reference WAV; Piper model IDs are not XTTS speakers.", heavy=True, supports_voice_cloning=True, license_note="XTTS model weights have separate Coqui license terms; review before use or redistribution."),
+        EngineCapability("kokoro", "Kokoro-82M · natural", "Apache-2.0 neural speech with 54 preset voices; the natural-sounding upgrade over Piper.", kokoro_ready, "Install the optional 'kokoro' extra (pip install kokoro); the model downloads on first use.", "Voice id such as af_heart, am_michael, or bf_emma.", license_note="Kokoro-82M weights are Apache 2.0 (voice packs included)."),
     ]
 
 
-def provider_for_engine(engine: str, *, piper_binary: str | Path = "piper", voice_directory: str | Path = "", piper_url: str = "http://127.0.0.1:9021", espeak_binary: str | Path | None = None, xtts_model: str = "tts_models/multilingual/multi-dataset/xtts_v2", xtts_language: str = "en", xtts_speaker_wav: str | Path | None = None, xtts_gpu: bool = False) -> TTSProvider:
+def provider_for_engine(engine: str, *, piper_binary: str | Path = "piper", voice_directory: str | Path = "", piper_url: str = "http://127.0.0.1:9021", espeak_binary: str | Path | None = None, xtts_model: str = "tts_models/multilingual/multi-dataset/xtts_v2", xtts_language: str = "en", xtts_speaker_wav: str | Path | None = None, xtts_gpu: bool = False, kokoro_voice: str = "af_heart") -> TTSProvider:
     """Create one provider lazily selected by project/backend or user config."""
     normalized = engine.lower().strip()
-    aliases = {"direct": "piper-direct", "http": "piper-http", "piper": "piper-direct", "espeak": "espeak-ng", "coqui-xtts": "xtts"}
+    aliases = {"direct": "piper-direct", "http": "piper-http", "piper": "piper-direct", "espeak": "espeak-ng", "coqui-xtts": "xtts", "kokoro-82m": "kokoro"}
     normalized = aliases.get(normalized, normalized)
     if normalized == "piper-direct":
         return DirectPiperProvider(piper_binary, voice_directory)
@@ -296,6 +371,8 @@ def provider_for_engine(engine: str, *, piper_binary: str | Path = "piper", voic
         return EspeakNgProvider(espeak_binary)
     if normalized == "xtts":
         return XTTSProvider(xtts_model, xtts_language, xtts_speaker_wav, xtts_gpu)
+    if normalized == "kokoro":
+        return KokoroProvider(voice=kokoro_voice)
     supported = ", ".join(capability.id for capability in engine_capabilities(piper_binary, voice_directory, piper_url))
     raise TTSProviderError(f"unsupported TTS engine {engine!r}; choose one of: {supported}")
 

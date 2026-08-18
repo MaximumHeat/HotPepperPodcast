@@ -35,6 +35,7 @@ def _provider_factory(args):
             xtts_language=args.xtts_language,
             xtts_speaker_wav=args.xtts_speaker_wav,
             xtts_gpu=args.xtts_gpu,
+            kokoro_voice=args.kokoro_voice,
         )
     return factory
 
@@ -294,6 +295,11 @@ def _doctor(args) -> int:
         capability = next(item for item in engine_capabilities(binary, directory, args.piper_url) if item.id == "xtts")
         print(f"XTTS: {'ready' if capability.ready else 'missing optional dependency'}")
         ok = ok and capability.ready
+    elif selected == "kokoro":
+        import importlib.util as _iu
+        ready = _iu.find_spec("kokoro") is not None
+        print(f"Kokoro: {'ready' if ready else 'missing optional dependency (pip install kokoro)'}")
+        ok = ok and ready
     else:
         print(f"engine: unsupported {selected}")
         ok = False
@@ -307,7 +313,7 @@ def build_parser() -> argparse.ArgumentParser:
     render = sub.add_parser("render", help="render a YAML/JSON project")
     render.add_argument("--project", required=True, type=Path)
     render.add_argument("--output-dir", required=True, type=Path)
-    render.add_argument("--provider", choices=["direct", "http", "piper-direct", "piper-http", "espeak-ng", "xtts"], default=None)
+    render.add_argument("--provider", choices=["direct", "http", "piper-direct", "piper-http", "espeak-ng", "xtts", "kokoro"], default=None)
     render.add_argument("--piper-binary", default=str(DEFAULT_BINARY if DEFAULT_BINARY.exists() else "piper"))
     render.add_argument("--voice-dir", default=str(default_voice_directory()))
     render.add_argument("--piper-url", default="http://127.0.0.1:9021")
@@ -316,6 +322,7 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--xtts-language", default="en")
     render.add_argument("--xtts-speaker-wav", type=Path)
     render.add_argument("--xtts-gpu", action="store_true", help="allow XTTS to use a CUDA GPU")
+    render.add_argument("--kokoro-voice", default="af_heart", help="Kokoro voice id (e.g. af_heart, am_michael, bf_emma)")
     render.add_argument("--keep-segments", action="store_true")
     render.add_argument("--export-stems", action="store_true", help="write aligned speech, music, and effects WAV stems")
     render.add_argument("--check-loudness", action="store_true", help="analyze RMS loudness and sample peak in the rendered WAV")
@@ -375,7 +382,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--voice-dir", default=str(default_voice_directory()))
     doctor.add_argument("--piper-binary", default=str(DEFAULT_BINARY if DEFAULT_BINARY.exists() else "piper"))
     doctor.add_argument("--piper-url", default="http://127.0.0.1:9021")
-    doctor.add_argument("--provider", choices=["direct", "http", "piper-direct", "piper-http", "espeak-ng", "xtts"], default="direct")
+    doctor.add_argument("--provider", choices=["direct", "http", "piper-direct", "piper-http", "espeak-ng", "xtts", "kokoro"], default="direct")
     doctor.add_argument("--espeak-binary", default=None)
     doctor.set_defaults(func=_doctor)
     return parser
